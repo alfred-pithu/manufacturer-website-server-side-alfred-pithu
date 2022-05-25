@@ -18,6 +18,10 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+const verifyJWT = (req, res, next) => {
+
+}
+
 async function run() {
     try {
         await client.connect();
@@ -25,6 +29,7 @@ async function run() {
         //collections
         const productCollection = client.db('assignment-12').collection('products');
         const feedbackCollection = client.db('assignment-12').collection('feedbacks');
+        const userCollection = client.db('assignment-12').collection('users');
 
         //to get all the products
         app.get('/products', async (req, res) => {
@@ -51,9 +56,20 @@ async function run() {
 
         //create JWT 
         app.put('/token', async (req, res) => {
-            const email = req.query;
-            const payload = { email: email }
-            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' })
+            const email = req.query.email;
+            const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+            const filter = { email: email }
+            const options = { upsert: true };
+
+            const updateDoc = {
+                $set: {
+                    email: email
+                },
+            };
+
+            const result = await userCollection.updateOne(filter, updateDoc, options)
+
             res.send({ token })
         })
 
