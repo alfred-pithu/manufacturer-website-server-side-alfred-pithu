@@ -3,7 +3,7 @@ const app = express();
 const cors = require('cors');
 const port = process.env.PORT || 5000;
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 var jwt = require('jsonwebtoken');
 
 
@@ -14,11 +14,25 @@ app.use(express.json())
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7bgws.mongodb.net/?retryWrites=true&w=majority`;
-
-
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+//verify jwt function 
 const verifyJWT = (req, res, next) => {
+    const authorization = req.headers.authorization;
+
+    if (!authorization) {
+        return res.status(403).send({ message: 'Unauthorized to access' })
+    }
+    const userToken = authorization.split(' ')[1]
+
+    jwt.verify(userToken, process.env.JWT_SECRET, function (err, decoded) {
+        if (err) {
+            return res.status(403).send({ message: 'Forbiden to access' })
+        }
+
+        req.decoded = decoded;
+        next()
+    })
 
 }
 
@@ -37,13 +51,20 @@ async function run() {
             res.send(result)
         })
 
-
-
+        //to get one particular product
+        app.get('/oneitem/:id', async (req, res) => {
+            const itemId = req.params.id;
+            const query = { _id: ObjectId(itemId) }
+            const result = await productCollection.findOne(query);
+            res.send(result)
+        })
 
 
 
         //to get all the feedbacks
         app.get('/feedbacks', async (req, res) => {
+
+
             const result = await feedbackCollection.find({}).toArray();
             res.send(result);
         })
@@ -54,7 +75,7 @@ async function run() {
         })
 
 
-        //create JWT 
+        //create JWT and add users to the userCollection 
         app.put('/token', async (req, res) => {
             const email = req.query.email;
             const token = jwt.sign({ email: email }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -67,9 +88,7 @@ async function run() {
                     email: email
                 },
             };
-
             const result = await userCollection.updateOne(filter, updateDoc, options)
-
             res.send({ token })
         })
 
