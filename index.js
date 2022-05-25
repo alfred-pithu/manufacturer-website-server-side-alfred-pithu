@@ -44,6 +44,7 @@ async function run() {
         const productCollection = client.db('assignment-12').collection('products');
         const feedbackCollection = client.db('assignment-12').collection('feedbacks');
         const userCollection = client.db('assignment-12').collection('users');
+        const orderCollection = client.db('assignment-12').collection('orders');
 
         //to get all the products
         app.get('/products', async (req, res) => {
@@ -57,6 +58,15 @@ async function run() {
             const query = { _id: ObjectId(itemId) }
             const result = await productCollection.findOne(query);
             res.send(result)
+        })
+
+        //to add order in the db
+        app.post('/order', async (req, res) => {
+            const order = req.body;
+            console.log(order);
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+
         })
 
 
