@@ -63,10 +63,28 @@ async function run() {
         //to add order in the db
         app.post('/order', async (req, res) => {
             const order = req.body;
-            console.log(order);
+            // console.log(order);
             const result = await orderCollection.insertOne(order);
             res.send(result);
 
+        })
+
+        //to get one's orders
+        app.get('/order', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email }
+            const result = await orderCollection.find(query).toArray();
+            res.send(result)
+            // console.log(result);
+        })
+
+        //delete one order 
+        app.delete('/order/:id', async (req, res) => {
+            const id = req.params.id;
+            // console.log(id);
+            const query = { _id: ObjectId(id) }
+            const result = await orderCollection.deleteOne(query)
+            res.send(result)
         })
 
 
