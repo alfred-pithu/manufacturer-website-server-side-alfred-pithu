@@ -46,6 +46,22 @@ async function run() {
         const userCollection = client.db('assignment-12').collection('users');
         const orderCollection = client.db('assignment-12').collection('orders');
 
+        //Verify admin
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            console.log('login kora acheee', user);
+            if (user.role === 'admin') {
+                next()
+            }
+            else {
+                return res.status(403).send({ message: 'Prohibited' })
+            }
+
+
+        }
+
         //to get all the products
         app.get('/products', async (req, res) => {
             const result = await productCollection.find({}).toArray();
@@ -99,6 +115,30 @@ async function run() {
             }
         })
 
+        //to patch or update one user (to set admin)
+        app.patch('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            // console.log(email);
+            const filter = { email: email }
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                }
+            }
+            const result = await userCollection.updateOne(filter, updateDoc)
+
+            res.send(result)
+
+        })
+
+
+
+        //to get all the users
+        app.get('/users', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await userCollection.find({}).toArray()
+            res.send(result);
+        })
+
 
 
         //to get all the feedbacks
@@ -115,6 +155,23 @@ async function run() {
             // console.log(review);
             const result = await feedbackCollection.insertOne(review);
             res.send(result)
+        })
+
+
+        // to check if admin or not
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email }
+            const user = await userCollection.findOne(query);
+            // console.log(user);
+            if (user?.role === 'admin') {
+                // console.log('Yessss, he is an admin');
+                res.send(true)
+            }
+            else {
+                res.send(false)
+            }
+
         })
 
 
