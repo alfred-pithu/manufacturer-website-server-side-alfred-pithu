@@ -88,6 +88,18 @@ async function run() {
         })
 
 
+        //to get one user
+        app.get('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            // console.log(email);
+            if (email) {
+                const query = { email: email }
+                const result = await userCollection.findOne(query);
+                res.send(result)
+            }
+        })
+
+
 
         //to get all the feedbacks
         app.get('/feedbacks', async (req, res) => {
@@ -99,7 +111,10 @@ async function run() {
 
         //to add new feedback
         app.post('/feedbacks', async (req, res) => {
-
+            const review = req.body;
+            // console.log(review);
+            const result = await feedbackCollection.insertOne(review);
+            res.send(result)
         })
 
 
