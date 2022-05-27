@@ -22,7 +22,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const verifyJWT = (req, res, next) => {
     const authorization = req.headers.authorization;
 
-    console.log(authorization);
+    // console.log(authorization);
 
     if (!authorization) {
         return res.status(401).send({ message: 'Unauthorized to access' })
@@ -115,6 +115,12 @@ async function run() {
             const query = { _id: ObjectId(itemId) }
             const result = await productCollection.findOne(query);
             res.send(result)
+        })
+
+        // to get all the orders
+        app.get('/orders', async (req, res) => {
+            const result = await orderCollection.find({}).toArray()
+            res.send(result);
         })
 
         //to add order in the db
