@@ -51,7 +51,7 @@ async function run() {
             const email = req.decoded.email;
             const query = { email: email }
             const user = await userCollection.findOne(query);
-            console.log('login kora acheee', user);
+            // console.log('login kora acheee', user);
             if (user.role === 'admin') {
                 next()
             }
@@ -75,6 +75,14 @@ async function run() {
             const result = await productCollection.insertOne(newProduct);
             res.send(result)
 
+        })
+
+        // to delete one product from the db
+        app.delete('/product/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await productCollection.deleteOne(query)
+            res.send(result);
         })
 
 
@@ -126,6 +134,24 @@ async function run() {
                 res.send(result)
             }
         })
+
+        //to update user's profile
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const updatedInfo = req.body;
+            // console.log(updatedInfo);
+            const filter = { email: email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: updatedInfo
+            }
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+
+
+        })
+
+
 
         //to patch or update one user (to set admin)
         app.patch('/user/:email', async (req, res) => {
