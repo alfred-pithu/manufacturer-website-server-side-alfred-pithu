@@ -6,7 +6,7 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 var jwt = require('jsonwebtoken');
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET)
+const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 
 
@@ -22,10 +22,14 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 const verifyJWT = (req, res, next) => {
     const authorization = req.headers.authorization;
 
+    console.log(authorization);
+
     if (!authorization) {
-        return res.status(403).send({ message: 'Unauthorized to access' })
+        return res.status(401).send({ message: 'Unauthorized to access' })
     }
     const userToken = authorization.split(' ')[1]
+
+    console.log(userToken);
 
     jwt.verify(userToken, process.env.JWT_SECRET, function (err, decoded) {
         if (err) {
@@ -47,6 +51,21 @@ async function run() {
         const feedbackCollection = client.db('assignment-12').collection('feedbacks');
         const userCollection = client.db('assignment-12').collection('users');
         const orderCollection = client.db('assignment-12').collection('orders');
+
+        //Stripe --------------------------
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const order = req.body;
+            console.log(order);
+            const price = order.totalPrice;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        })
+
 
         //Verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -131,6 +150,26 @@ async function run() {
             const query = { _id: ObjectId(id) }
             const result = await orderCollection.findOne(query);
             res.send(result)
+        })
+
+        // update one order after payment
+        app.put('/oneOrder/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: {
+                    status: 'Pending',
+                    paid: true,
+                    transactionId: payment.transactionId,
+                }
+            }
+
+            const result = await orderCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+
+
         })
 
 
