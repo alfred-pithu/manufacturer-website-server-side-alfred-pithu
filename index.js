@@ -6,6 +6,8 @@ require("dotenv").config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 var jwt = require('jsonwebtoken');
 
+const stripe = require('stripe')(process.env.STRIPE_SECRET)
+
 
 
 //middleware
@@ -123,6 +125,14 @@ async function run() {
             res.send(result)
         })
 
+        //get one particular order for payment
+        app.get('/oneOrder/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) }
+            const result = await orderCollection.findOne(query);
+            res.send(result)
+        })
+
 
         //to get one user
         app.get('/user/:email', async (req, res) => {
@@ -181,8 +191,6 @@ async function run() {
 
         //to get all the feedbacks
         app.get('/feedbacks', async (req, res) => {
-
-
             const result = await feedbackCollection.find({}).toArray();
             res.send(result);
         })
