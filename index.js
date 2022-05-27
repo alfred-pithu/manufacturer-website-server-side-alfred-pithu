@@ -68,6 +68,18 @@ async function run() {
             res.send(result)
         })
 
+        // to add/post new product in db
+        app.post('/product', async (req, res) => {
+            const newProduct = req.body;
+            // console.log(newProduct);
+            const result = await productCollection.insertOne(newProduct);
+            res.send(result)
+
+        })
+
+
+
+
         //to get one particular product
         app.get('/oneitem/:id', async (req, res) => {
             const itemId = req.params.id;
