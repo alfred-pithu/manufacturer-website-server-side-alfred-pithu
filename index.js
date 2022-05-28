@@ -150,6 +150,14 @@ async function run() {
             res.send(result)
         })
 
+        // //delete one unpaid order by admin
+        // app.delete('/unpaidOrder/:id', async (req, res) => {
+        //     const id = req.params.id
+        //     const query = { _id: ObjectId(id) }
+        //     const result = await orderCollection.deleteOne(query)
+        //     res.send(result)
+        // })
+
         //get one particular order for payment
         app.get('/oneOrder/:id', async (req, res) => {
             const id = req.params.id;
@@ -176,6 +184,19 @@ async function run() {
             res.send(result);
 
 
+        })
+
+        // update status to Shipped
+        app.put('/updateToShipped/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const filter = { _id: ObjectId(id) }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: { status: 'Shipped' }
+            }
+            const result = await orderCollection.updateOne(filter, updateDoc, options)
+            res.send(result)
         })
 
 
