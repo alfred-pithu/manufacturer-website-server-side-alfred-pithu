@@ -25,9 +25,7 @@ const verifyJWT = (req, res, next) => {
         return res.status(401).send({ message: 'Unauthorized to access' })
     }
     const userToken = authorization.split(' ')[1]
-
     console.log(userToken);
-
     jwt.verify(userToken, process.env.JWT_SECRET, function (err, decoded) {
         if (err) {
             return res.status(403).send({ message: 'Forbiden to access' })
@@ -88,7 +86,6 @@ async function run() {
         // to add/post new product in db
         app.post('/product', verifyJWT, async (req, res) => {
             const newProduct = req.body;
-            // console.log(newProduct);
             const result = await productCollection.insertOne(newProduct);
             res.send(result)
 
@@ -122,7 +119,6 @@ async function run() {
         //to add order in the db
         app.post('/order', verifyJWT, async (req, res) => {
             const order = req.body;
-            // console.log(order);
             const result = await orderCollection.insertOne(order);
             res.send(result);
 
@@ -134,13 +130,11 @@ async function run() {
             const query = { email: email }
             const result = await orderCollection.find(query).toArray();
             res.send(result)
-            // console.log(result);
         })
 
         //delete one order 
         app.delete('/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            // console.log(id);
             const query = { _id: ObjectId(id) }
             const result = await orderCollection.deleteOne(query)
             res.send(result)
@@ -204,7 +198,6 @@ async function run() {
         app.put('/user/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const updatedInfo = req.body;
-            // console.log(updatedInfo);
             const filter = { email: email }
             const options = { upsert: true };
             const updateDoc = {
@@ -221,7 +214,6 @@ async function run() {
         //to patch or update one user (to set admin)
         app.patch('/user/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
-            // console.log(email);
             const filter = { email: email }
             const updateDoc = {
                 $set: {
@@ -253,7 +245,6 @@ async function run() {
         //to add new feedback
         app.post('/feedbacks', verifyJWT, async (req, res) => {
             const review = req.body;
-            // console.log(review);
             const result = await feedbackCollection.insertOne(review);
             res.send(result)
         })
@@ -264,7 +255,6 @@ async function run() {
             const email = req.params.email;
             const query = { email: email }
             const user = await userCollection.findOne(query);
-            // console.log(user);
             if (user?.role === 'admin') {
                 res.send(true)
             }
