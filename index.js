@@ -133,7 +133,7 @@ async function run() {
         })
 
         //to get one's orders
-        app.get('/order', async (req, res) => {
+        app.get('/order', verifyJWT, async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const result = await orderCollection.find(query).toArray();
@@ -159,7 +159,7 @@ async function run() {
         // })
 
         //get one particular order for payment
-        app.get('/oneOrder/:id', async (req, res) => {
+        app.get('/oneOrder/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await orderCollection.findOne(query);
@@ -212,7 +212,7 @@ async function run() {
         })
 
         //to update user's profile
-        app.put('/user/:email', async (req, res) => {
+        app.put('/user/:email', verifyJWT, async (req, res) => {
             const email = req.params.email;
             const updatedInfo = req.body;
             // console.log(updatedInfo);
@@ -262,7 +262,7 @@ async function run() {
         })
 
         //to add new feedback
-        app.post('/feedbacks', async (req, res) => {
+        app.post('/feedbacks', verifyJWT, async (req, res) => {
             const review = req.body;
             // console.log(review);
             const result = await feedbackCollection.insertOne(review);
