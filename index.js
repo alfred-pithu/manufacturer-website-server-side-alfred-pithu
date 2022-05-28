@@ -9,7 +9,6 @@ var jwt = require('jsonwebtoken');
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 
-
 //middleware
 app.use(cors())
 app.use(express.json())
@@ -21,8 +20,6 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 //verify jwt function 
 const verifyJWT = (req, res, next) => {
     const authorization = req.headers.authorization;
-
-    // console.log(authorization);
 
     if (!authorization) {
         return res.status(401).send({ message: 'Unauthorized to access' })
@@ -72,7 +69,6 @@ async function run() {
             const email = req.decoded.email;
             const query = { email: email }
             const user = await userCollection.findOne(query);
-            // console.log('login kora acheee', user);
             if (user.role === 'admin') {
                 next()
             }
@@ -90,7 +86,7 @@ async function run() {
         })
 
         // to add/post new product in db
-        app.post('/product', async (req, res) => {
+        app.post('/product', verifyJWT, async (req, res) => {
             const newProduct = req.body;
             // console.log(newProduct);
             const result = await productCollection.insertOne(newProduct);
@@ -99,7 +95,7 @@ async function run() {
         })
 
         // to delete one product from the db
-        app.delete('/product/:id', async (req, res) => {
+        app.delete('/product/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) }
             const result = await productCollection.deleteOne(query)
@@ -118,13 +114,13 @@ async function run() {
         })
 
         // to get all the orders
-        app.get('/orders', async (req, res) => {
+        app.get('/orders', verifyJWT, verifyAdmin, async (req, res) => {
             const result = await orderCollection.find({}).toArray()
             res.send(result);
         })
 
         //to add order in the db
-        app.post('/order', async (req, res) => {
+        app.post('/order', verifyJWT, async (req, res) => {
             const order = req.body;
             // console.log(order);
             const result = await orderCollection.insertOne(order);
@@ -142,7 +138,7 @@ async function run() {
         })
 
         //delete one order 
-        app.delete('/order/:id', async (req, res) => {
+        app.delete('/order/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             // console.log(id);
             const query = { _id: ObjectId(id) }
@@ -150,13 +146,7 @@ async function run() {
             res.send(result)
         })
 
-        // //delete one unpaid order by admin
-        // app.delete('/unpaidOrder/:id', async (req, res) => {
-        //     const id = req.params.id
-        //     const query = { _id: ObjectId(id) }
-        //     const result = await orderCollection.deleteOne(query)
-        //     res.send(result)
-        // })
+
 
         //get one particular order for payment
         app.get('/oneOrder/:id', verifyJWT, async (req, res) => {
@@ -187,7 +177,7 @@ async function run() {
         })
 
         // update status to Shipped
-        app.put('/updateToShipped/:id', async (req, res) => {
+        app.put('/updateToShipped/:id', verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.params.id;
             console.log(id);
             const filter = { _id: ObjectId(id) }
@@ -203,7 +193,6 @@ async function run() {
         //to get one user
         app.get('/user/:email', async (req, res) => {
             const email = req.params.email;
-            // console.log(email);
             if (email) {
                 const query = { email: email }
                 const result = await userCollection.findOne(query);
@@ -230,7 +219,7 @@ async function run() {
 
 
         //to patch or update one user (to set admin)
-        app.patch('/user/:email', async (req, res) => {
+        app.patch('/user/:email', verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
             // console.log(email);
             const filter = { email: email }
@@ -270,14 +259,13 @@ async function run() {
         })
 
 
-        // to check if admin or not
+        // to get one user to check if admin or not
         app.get('/admin/:email', async (req, res) => {
             const email = req.params.email;
             const query = { email: email }
             const user = await userCollection.findOne(query);
             // console.log(user);
             if (user?.role === 'admin') {
-                // console.log('Yessss, he is an admin');
                 res.send(true)
             }
             else {
@@ -304,23 +292,6 @@ async function run() {
             res.send({ token })
         })
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     }
     finally {
         // await client.close();
@@ -332,13 +303,8 @@ run().catch(console.dir);
 
 
 
-
-
-
-
-
 app.get('/', (req, res) => {
-    res.send('Server is Running Broooooooooooooooooo');
+    res.send('Server is Running ');
 })
 
 app.listen(port, () => {
