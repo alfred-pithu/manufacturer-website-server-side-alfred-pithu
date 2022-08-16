@@ -9,6 +9,7 @@ var jwt = require('jsonwebtoken');
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
 
 
+
 //middleware
 app.use(cors())
 app.use(express.json())
@@ -30,6 +31,7 @@ const verifyJWT = (req, res, next) => {
         if (err) {
             return res.status(403).send({ message: 'Forbiden to access' })
         }
+
 
         req.decoded = decoded;
         next()
