@@ -6,4 +6,4 @@
 - Mongodb has been used as the Database
 - Cors middleware has been used
 - JWT Verification and Admin Verification has been implemented
-- Server Deployed in Heroku
+- Server Deployed in Render
