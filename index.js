@@ -26,11 +26,12 @@ const verifyJWT = (req, res, next) => {
     if (!authorization) {
         return res.status(401).send({ message: 'Unauthorized to access' })
     }
+
     const userToken = authorization.split(' ')[1]
     console.log(userToken);
     jwt.verify(userToken, process.env.JWT_SECRET, function (err, decoded) {
         if (err) {
-            return res.status(403).send({ message: 'Forbiden to access' })
+            return res.status(403).send({ message: 'Forbidden to access' })
         }
 
 
